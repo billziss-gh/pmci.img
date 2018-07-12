@@ -38,10 +38,6 @@ expect "assword:"
 send "$rootpass\r"
 
 sh {
-    env ASSUME_ALWAYS_YES=1 pkg bootstrap
-
-    pkg install -y google-cloud-sdk
-
     pkg install -y git
     pkg install -y go
 

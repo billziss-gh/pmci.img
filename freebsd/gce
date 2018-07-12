@@ -1,0 +1,60 @@
+#!/usr/bin/env expect -f
+
+# freebsd/gce
+#
+# Copyright 2018 Bill Zissimopoulos
+
+# This file is part of "Poor Man's CI".
+#
+# It is licensed under the BSD license. The full license text can be found
+# in the License.txt file at the root of this project.
+
+set rootpass ""
+
+set timeout 600
+set force_conservative 1
+
+proc sh {args} {
+    foreach arg $args {
+        foreach line [split $arg "\n"] {
+            set line [string trim $line]
+            if {$line != ""} {
+                expect "# "
+                send "$line\r"
+            }
+        }
+    }
+}
+
+spawn qemu-system-x86_64 \
+    -smp 2 \
+    -drive file=[lindex $argv 0],format=raw,if=virtio \
+    -net nic,model=virtio,macaddr=02:00:00:00:00:01 -net user \
+    -nographic
+
+expect "login:"
+send "root\r"
+expect "assword:"
+send "$rootpass\r"
+
+sh {
+    echo 'hw.memtest.tests="0"'                >>/boot/loader.conf
+    echo 'hw.vtnet.mq_disable=1'               >>/boot/loader.conf
+    echo 'kern.timecounter.hardware=ACPI-safe' >>/boot/loader.conf
+    echo 'aesni_load="YES"'                    >>/boot/loader.conf
+    echo 'nvme_load="YES"'                     >>/boot/loader.conf
+
+    sed -i "" 's/ifconfig_vtnet0="DHCP"/ifconfig_vtnet0="SYNCDHCP mtu 1460"/' /etc/rc.conf
+
+    echo '/usr/local/bin/curl -s -S -o /var/run/google-startup-script http://metadata.google.internal/computeMetadata/v1/instance/attributes/startup-script -H Metadata-Flavor:Google' >/etc/rc.local
+    echo 'chmod a+x /var/run/google-startup-script' >>/etc/rc.local
+    echo '/var/run/google-startup-script'           >>/etc/rc.local
+
+    env ASSUME_ALWAYS_YES=1 pkg bootstrap -y
+    env ASSUME_ALWAYS_YES=1 pkg install -y curl
+    env ASSUME_ALWAYS_YES=1 pkg install -y google-cloud-sdk
+
+    shutdown -p now
+}
+
+expect eof
