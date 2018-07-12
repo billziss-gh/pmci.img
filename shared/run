@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# imgtool
+#
+# Copyright 2018 Bill Zissimopoulos
+
+# This file is part of "Poor Man's CI".
+#
+# It is licensed under the BSD license. The full license text can be found
+# in the License.txt file at the root of this project.
+
+set -e
+
+qemu-system-x86_64 \
+    -smp 2 \
+    -drive file="$1",format=raw,if=virtio \
+    -net nic,model=virtio,macaddr=02:00:00:00:00:01 -net user \
+    -nographic
