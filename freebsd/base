@@ -9,7 +9,6 @@
 # It is licensed under the BSD license. The full license text can be found
 # in the License.txt file at the root of this project.
 
-set hostname "freebsd"
 set rootpass ""
 
 set timeout 600
@@ -55,7 +54,7 @@ expect {
     }
     "Set Hostname" {
         expect "Please choose a hostname for this machine"
-        send "$hostname\r"
+        send "\r"
         exp_continue
     }
     "Distribution Select" {

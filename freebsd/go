@@ -9,7 +9,6 @@
 # It is licensed under the BSD license. The full license text can be found
 # in the License.txt file at the root of this project.
 
-set hostname "freebsd"
 set rootpass ""
 
 set timeout 600
@@ -36,7 +35,7 @@ spawn qemu-system-x86_64 \
 expect "login:"
 send "root\r"
 expect "assword:"
-send "\r"
+send "$rootpass\r"
 
 sh {
     env ASSUME_ALWAYS_YES=1 pkg bootstrap
