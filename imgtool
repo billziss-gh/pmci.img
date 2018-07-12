@@ -1,0 +1,68 @@
+#!/bin/sh
+
+# imgtool
+#
+# Copyright 2018 Bill Zissimopoulos
+
+# This file is part of "Poor Man's CI".
+#
+# It is licensed under the BSD license. The full license text can be found
+# in the License.txt file at the root of this project.
+
+set -e
+
+ProgName=$(basename "$0")
+ImageDir=$(cd $(dirname "$0") && pwd)
+
+usage()
+{
+    [ -n "$1" ] && echo "$@"
+    echo "usage: $ProgName source target" 1>&2
+    exit 2
+}
+
+[ $# -ne 2 ] && usage
+
+source="$1"
+target="$2"
+tgtsys="$(dirname "$target")"
+tgtcmd="$(basename "$target")"
+tgtimg="$(basename "$source")"
+
+tgtimg="${tgtimg%.iso}"
+tgtimg="${tgtimg%-base.tgz}"
+tgtimg="${tgtimg%.tgz}"
+tgtimg="${tgtimg%-base.tar.gz}"
+tgtimg="${tgtimg%.tar.gz}"
+tgtimg="$tgtimg-$tgtcmd"
+
+[ -n "$target" -a -x "$ImageDir/$target" ] || usage "unknown target" $target
+
+tmpdir=/tmp/imgtool.$$
+trap 'rm -rf "$tmpdir"' EXIT
+mkdir -p "$tmpdir"
+
+case "$tgtcmd/$source" in
+download/*.iso)
+    "$ImageDir/$tgtsys/download" "$source"
+    ;;
+base/*.iso)
+    [ -f "$source" ] || "$ImageDir/$tgtsys/download" "$source"
+    "$ImageDir/$tgtsys/base" "$tmpdir/disk.raw" "$source"
+    gnutar Sczvf "$tgtimg.tar.gz" -C "$tmpdir" disk.raw
+    ;;
+*/*.iso)
+    [ -f "$source" ] || "$ImageDir/$tgtsys/download" "$source"
+    "$ImageDir/$tgtsys/base" "$tmpdir/disk.raw" "$source"
+    "$ImageDir/$target" "$tmpdir/disk.raw"
+    gnutar Sczvf "$tgtimg.tar.gz" -C "$tmpdir" disk.raw
+    ;;
+*/*.tgz|*/*.tar.gz)
+    gnutar xzvf "$source" -C "$tmpdir"
+    "$ImageDir/$target" "$tmpdir/disk.raw"
+    gnutar Sczvf "$tgtimg.tar.gz" -C "$tmpdir" disk.raw
+    ;;
+*/*)
+    usage "unknown source format"
+    ;;
+esac
