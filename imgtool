@@ -49,18 +49,18 @@ download/*.iso)
 base/*.iso)
     [ -f "$source" ] || "$ImageDir/$tgtsys/download" "$source"
     "$ImageDir/$tgtsys/base" "$tmpdir/disk.raw" "$source"
-    gnutar Sczvf "$tgtimg.tar.gz" -C "$tmpdir" disk.raw
+    gnutar czvf "$tgtimg.tar.gz" -C "$tmpdir" disk.raw
     ;;
 */*.iso)
     [ -f "$source" ] || "$ImageDir/$tgtsys/download" "$source"
     "$ImageDir/$tgtsys/base" "$tmpdir/disk.raw" "$source"
     "$ImageDir/$target" "$tmpdir/disk.raw"
-    gnutar Sczvf "$tgtimg.tar.gz" -C "$tmpdir" disk.raw
+    gnutar czvf "$tgtimg.tar.gz" -C "$tmpdir" disk.raw
     ;;
 */*.tgz|*/*.tar.gz)
     gnutar xzvf "$source" -C "$tmpdir"
     "$ImageDir/$target" "$tmpdir/disk.raw"
-    gnutar Sczvf "$tgtimg.tar.gz" -C "$tmpdir" disk.raw
+    gnutar czvf "$tgtimg.tar.gz" -C "$tmpdir" disk.raw
     ;;
 */*)
     usage "unknown source format"

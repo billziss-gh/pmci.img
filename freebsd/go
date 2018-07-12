@@ -1,0 +1,52 @@
+#!/usr/bin/env expect -f
+
+# freebsd/go
+#
+# Copyright 2018 Bill Zissimopoulos
+
+# This file is part of "Poor Man's CI".
+#
+# It is licensed under the BSD license. The full license text can be found
+# in the License.txt file at the root of this project.
+
+set hostname "freebsd"
+set rootpass ""
+
+set timeout 600
+set force_conservative 1
+
+proc sh {args} {
+    foreach arg $args {
+        foreach line [split $arg "\n"] {
+            set line [string trim $line]
+            if {$line != ""} {
+                expect "# "
+                send "$line\r"
+            }
+        }
+    }
+}
+
+spawn qemu-system-x86_64 \
+    -smp 2 \
+    -drive file=[lindex $argv 0],format=raw,if=virtio \
+    -net nic,model=virtio,macaddr=02:00:00:00:00:01 -net user \
+    -nographic
+
+expect "login:"
+send "root\r"
+expect "assword:"
+send "\r"
+
+sh {
+    env ASSUME_ALWAYS_YES=1 pkg bootstrap
+
+    pkg install -y google-cloud-sdk
+
+    pkg install -y git
+    pkg install -y go
+
+    shutdown -p now
+}
+
+expect eof
