@@ -1,0 +1,165 @@
+#!/usr/bin/env expect -f
+
+# freebsd/base
+#
+# Copyright 2018 Bill Zissimopoulos
+
+# This file is part of "Poor Man's CI".
+#
+# It is licensed under the BSD license. The full license text can be found
+# in the License.txt file at the root of this project.
+
+set hostname "freebsd"
+set rootpass ""
+
+set timeout 600
+set force_conservative 1
+
+proc sh {args} {
+    foreach arg $args {
+        foreach line [split $arg "\n"] {
+            set line [string trim $line]
+            if {$line != ""} {
+                expect "# "
+                send "$line\r"
+            }
+        }
+    }
+}
+
+spawn qemu-img create -f raw [lindex $argv 0] 5G
+expect "Formatting"
+expect eof
+
+spawn qemu-system-x86_64 \
+    -cdrom [lindex $argv 1] \
+    -smp 2 \
+    -drive file=[lindex $argv 0],format=raw,if=virtio \
+    -net nic,model=virtio,macaddr=02:00:00:00:00:01 -net user \
+    -display curses
+
+expect "Welcome to FreeBSD"
+expect "Autoboot in * seconds"
+send "\r"
+
+expect {
+    "Welcome to FreeBSD" {
+        expect "nstall"
+        send "\r"
+        exp_continue
+    }
+    "Keymap Selection" {
+        expect "Continue with default keymap"
+        send "\r"
+        exp_continue
+    }
+    "Set Hostname" {
+        expect "Please choose a hostname for this machine"
+        send "$hostname\r"
+        exp_continue
+    }
+    "Distribution Select" {
+        expect "Choose optional system components to install"
+        send "ll "
+        send "p "
+        send "\r"
+        exp_continue
+    }
+    "Network Installation" {
+        send "\r"
+        exp_continue
+    }
+    "Network Configuration" {
+        expect "Please select a network interface"
+        send "\r"
+        expect "IPv4"
+        send "Y"
+        expect "DHCP"
+        send "Y"
+        expect "IPv6"
+        send "N"
+        expect "Resolver Configuration"
+        send "\r"
+        exp_continue
+    }
+    "Mirror Selection" {
+        expect "Please select the site closest to you"
+        send "\r"
+        exp_continue
+    }
+    "Partitioning" {
+        expect "How would you like to partition your disk?"
+        send "\r"
+        expect "Partition"
+        expect "Would you like to use this entire disk"
+        send "\r"
+        expect "Partition Scheme"
+        expect "Select a partition scheme for this"
+        send "\r"
+        expect "Partition Editor"
+        expect "Please review the disk setup"
+        send "\r"
+        expect "Confirmation"
+        expect "Your changes will now be written to disk"
+        send "\r"
+        exp_continue
+    }
+    "Changing local password for root" {
+        expect "Password:"
+        send "$rootpass\r"
+        expect "Password:"
+        send "$rootpass\r"
+        exp_continue
+    }
+    "Time Zone Selector" {
+        expect "Select a region"
+        send "a\r"
+        expect "Confirmation"
+        expect "Does the abbreviation \`UTC' look reasonable"
+        send "\r"
+        exp_continue
+    }
+    "Time & Date" {
+        expect "et Date"
+        send "\r"
+        expect "Time & Date"
+        #expect "et Time"
+        send "\r"
+        exp_continue
+    }
+    "System Configuration" {
+        expect "Choose the services you would like to be started at boot"
+        send "d "
+        send "\r"
+        expect "System Hardening"
+        expect "Choose system security hardening options"
+        send "C "
+        send "\r"
+        exp_continue
+    }
+    "Add User Accounts" {
+        expect "Would you like to add"
+        send "N"
+        exp_continue
+    }
+    "Final Configuration" {
+        expect "Setup of your FreeBSD system is nearly complete"
+        send "\r"
+        expect "Manual Configuration"
+        expect "The installation is now finished"
+        send "Y"
+    }
+}
+
+expect "This shell is operating in a chroot"
+sh {
+    echo '-h' >/boot.config
+
+    echo 'autoboot_delay="-1"'    >/boot/loader.conf
+    echo 'beastie_disable="YES"' >>/boot/loader.conf
+    echo 'console="comconsole"'  >>/boot/loader.conf
+
+    shutdown -p now
+}
+
+expect eof
