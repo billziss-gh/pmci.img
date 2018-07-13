@@ -1,0 +1,130 @@
+#!/usr/bin/env expect -f
+
+# netbsd/base
+#
+# Copyright 2018 Bill Zissimopoulos
+
+# This file is part of "Poor Man's CI".
+#
+# It is licensed under the BSD license. The full license text can be found
+# in the License.txt file at the root of this project.
+
+set rootpass ""
+
+set timeout 600
+set force_conservative 1
+
+proc sh {args} {
+    foreach arg $args {
+        foreach line [split $arg "\n"] {
+            set line [string trim $line]
+            if {$line != ""} {
+                expect "# "
+                send "$line\r"
+            }
+        }
+    }
+}
+
+spawn qemu-img create -f raw [lindex $argv 0] 5G
+expect "Formatting"
+expect eof
+
+spawn qemu-system-x86_64 \
+    -cdrom [lindex $argv 1] \
+    -smp 2 \
+    -drive file=[lindex $argv 0],format=raw,if=virtio \
+    -net nic,model=virtio,macaddr=02:00:00:00:00:02 -net user \
+    -display curses
+
+expect "1. Boot normally"
+expect "Option 1 will be chosen"
+send "\r"
+
+expect "Installation messages in English"
+send "a\r"
+
+expect "Keyboard type"
+send "a\r"
+
+expect "Install System"
+send "a\r"
+
+expect "install NetBSD on your hard disk"
+expect "yes or no?"
+send "b\r"
+expect "Available disks"
+send "a\r"
+expect "This is the correct geometry"
+send "a\r"
+expect "install NetBSD"
+expect "Use the entire disk"
+send "b\r"
+expect "install the NetBSD bootcode"
+expect "yes or no?"
+send "a\r"
+expect "Choose your installation"
+expect "Use existing partition sizes"
+send "b\r"
+expect "Partition sizes ok"
+send "x\r"
+expect "enter a name for your NetBSD disk"
+send "\r"
+expect "install NetBSD on your hard disk"
+expect "yes or no?"
+send "b\r"
+
+expect "Bootblocks selection"
+expect "Use serial port com0"
+send "b\r"
+expect "Serial port com0 at * baud"
+send "f\r"
+expect "e: 115200"
+send "e\r"
+send "x\r"
+
+expect "Select your distribution"
+send "d\r"
+expect "e: Compiler tools"
+send "e\r"
+send "x\r"
+
+expect "Install from"
+send "a\r"
+
+expect "Hit enter to continue"
+send "\r"
+
+expect "a: Configure network"
+send "a\r"
+expect "Available interfaces"
+send "a\r"
+expect "Network media type"
+send "\r"
+send "Perform autoconfiguration?"
+send "a\r"
+expect "Your DNS domain"
+send "\r"
+expect "The following are the values you entered"
+expect "Are they OK?"
+send "a\r"
+expect "do you want it installed in /etc"
+send "a\r"
+
+expect "g: Enable sshd"
+send "g\r"
+send "l\r"
+send "n\r"
+send "x\r"
+
+expect "Hit enter to continue"
+send "\r"
+
+expect "x: Exit Install System"
+send "x\r"
+
+sh {
+    shutdown -p now
+}
+
+expect eof
