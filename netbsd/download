@@ -13,6 +13,6 @@ set -e
 
 target="$1"
 source="$(basename "$1")"
-version="$(echo "$source" | sed 's/^\(NetBSD-[0-9]*\.[0-9]*\.[0-9]*\)-.*/\1/')"
+version="$(echo "$source" | sed 's/^\(NetBSD-[^-]*\)-.*/\1/')"
 
 curl -o "$target" "https://cdn.netbsd.org/pub/NetBSD/$version/images/$source"
