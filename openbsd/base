@@ -1,0 +1,162 @@
+#!/usr/bin/env expect -f
+
+# openbsd/base
+#
+# Copyright 2018 Bill Zissimopoulos
+
+# This file is part of "Poor Man's CI".
+#
+# It is licensed under the BSD license. The full license text can be found
+# in the License.txt file at the root of this project.
+
+set rootpass "root"
+
+set timeout 600
+set force_conservative 1
+
+proc sh {args} {
+    foreach arg $args {
+        foreach line [split $arg "\n"] {
+            set line [string trim $line]
+            if {$line != ""} {
+                expect "# "
+                send "$line\r"
+            }
+        }
+    }
+}
+
+spawn qemu-img create -f raw [lindex $argv 0] 5G
+expect "Formatting"
+expect eof
+
+spawn qemu-system-x86_64 \
+    -boot once=d \
+    -cdrom [lindex $argv 1] \
+    -smp 2 \
+    -drive file=[lindex $argv 0],format=raw,if=virtio \
+    -net nic,model=virtio,macaddr=02:00:00:00:00:03 -net user \
+    -display curses
+
+expect "boot> "
+send "\r"
+
+expect "Welcome to the OpenBSD"
+expect "(I)nstall"
+send "I\r"
+
+expect "keyboard layout"
+send "\r"
+
+expect "hostname"
+send "openbsd\r"
+
+expect "network interface"
+send "vio0\r"
+expect "IPv4"
+send "dhcp\r"
+expect "IPv6"
+send "none\r"
+expect "network interface"
+send "done\r"
+
+expect "domain name"
+send "\r"
+
+expect "Password for root"
+send "$rootpass\r"
+expect "Password for root"
+send "$rootpass\r"
+
+expect "sshd"
+send "yes\r"
+
+expect "X Window System"
+send "no\r"
+
+expect "default console to com0"
+send "no\r"
+
+expect "Setup a user"
+send "no\r"
+
+expect "root ssh"
+send "no\r"
+
+expect "timezone"
+send "UTC\r"
+
+# custom partitioning
+#     /     95%
+#     swap  5%
+expect "root disk"
+send "\r"
+expect "(W)hole disk MBR"
+send "W\r"
+expect "(C)ustom layout"
+send "C\r"
+expect "Label editor"
+expect "> "
+send "a b\r"
+expect "offset"
+send "\r"
+expect "size"
+send "5%\r"
+expect "FS type"
+send "swap\r"
+send "a a\r"
+expect "offset"
+send "\r"
+expect "size"
+send "*\r"
+expect "FS type"
+send "\r"
+expect "mount point"
+send "/\r"
+expect "> "
+send "p m\r"
+expect "> "
+send "w\r"
+expect "> "
+send "x\r"
+
+expect "Location of sets"
+send "\r"
+expect "Pathname to the sets"
+send "\r"
+expect "Set name(s)"
+send -- "-* +bsd* +base* +comp*\r"
+expect "Set name(s)"
+send "done\r"
+expect "Continue without verification"
+send "yes\r"
+expect "Location of sets"
+send "done\r"
+
+expect "(S)hell"
+send "S\r"
+
+sh {
+    sed -i"" 's@^reorder_libs$@#reorder_libs@' /mnt/etc/rc
+    sed -i"" 's@^/usr/libexec/reorder_kernel@#/usr/libexec/reorder_kernel@' /mnt/etc/rc
+
+    /mnt/sbin/shutdown -r now
+}
+
+expect "boot> "
+send "\r"
+
+expect "login:"
+send "root\r"
+expect "assword:"
+send "$rootpass\r"
+
+sh {
+    echo 'set tty com0'      >/etc/boot.conf
+    echo 'stty com0 115200' >>/etc/boot.conf
+    echo 'boot'             >>/etc/boot.conf
+
+    shutdown -p now
+}
+
+expect eof
