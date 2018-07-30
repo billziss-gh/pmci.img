@@ -57,6 +57,10 @@ base/*.iso)
     "$ImageDir/$target" "$tmpdir/disk.raw"
     gnutar czvf "$tgtimg.tar.gz" -C "$tmpdir" disk.raw
     ;;
+run/*.tgz|run/*.tar.gz)
+    gnutar xzvf "$source" -C "$tmpdir"
+    "$ImageDir/$target" "$tmpdir/disk.raw"
+    ;;
 */*.tgz|*/*.tar.gz)
     gnutar xzvf "$source" -C "$tmpdir"
     "$ImageDir/$target" "$tmpdir/disk.raw"
