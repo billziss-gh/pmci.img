@@ -136,6 +136,8 @@ expect {
         expect "System Hardening"
         expect "Choose system security hardening options"
         send "C "
+        send "D "
+        send "D "
         send "\r"
         exp_continue
     }
