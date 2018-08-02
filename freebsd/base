@@ -33,7 +33,10 @@ expect eof
 spawn qemu-system-x86_64 \
     -cdrom [lindex $argv 1] \
     -smp 2 \
-    -drive file=[lindex $argv 0],format=raw,if=virtio \
+    -device virtio-scsi \
+    -blockdev driver=file,node-name=diskfile,filename=[lindex $argv 0] \
+    -blockdev driver=raw,node-name=disk,file=diskfile \
+    -device scsi-hd,drive=disk \
     -net nic,model=virtio,macaddr=02:00:00:00:00:01 -net user \
     -display curses
 

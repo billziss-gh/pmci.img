@@ -13,6 +13,9 @@ set -e
 
 qemu-system-x86_64 \
     -smp 2 \
-    -drive file="$1",format=raw,if=virtio \
+    -device virtio-scsi \
+    -blockdev driver=file,node-name=diskfile,filename="$1" \
+    -blockdev driver=raw,node-name=disk,file=diskfile \
+    -device scsi-hd,drive=disk \
     -net nic,model=virtio,macaddr=02:00:00:00:00:01 -net user \
     -nographic
