@@ -127,6 +127,10 @@ expect "x: Exit Install System"
 send "x\r"
 
 sh {
+    mount /dev/sd0a /mnt
+    sed -i"" 's/dhcpcd_flags="-q/dhcpcd_flags="-q4/' /mnt/etc/rc.conf
+    echo 'PKG_PATH=ftp://ftp.netbsd.org/pub/pkgsrc/packages/NetBSD/x86_64/8.0/All' >/mnt/etc/pkg_install.conf
+    umount /mnt
     shutdown -p now
 }
 
