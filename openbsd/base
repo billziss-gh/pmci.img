@@ -159,6 +159,8 @@ sh {
     echo 'stty com0 115200' >>/etc/boot.conf
     echo 'boot'             >>/etc/boot.conf
 
+    sed -i"" 's@^tty00.*$@tty00 "/usr/libexec/getty std.115200" vt100 on secure@' /etc/ttys
+
     shutdown -p now
 }
 
