@@ -143,6 +143,9 @@ sh {
     sed -i"" 's@^reorder_libs$@#reorder_libs@' /mnt/etc/rc
     sed -i"" 's@^/usr/libexec/reorder_kernel@#/usr/libexec/reorder_kernel@' /mnt/etc/rc
 
+    sed -i"" 's@^smtpd_flags=.*$@smtpd_flags=NO@' /mnt/etc/rc.conf
+    sed -i"" 's@^ntpd_flags=.*$@ntpd_flags=NO@' /mnt/etc/rc.conf
+
     /mnt/sbin/shutdown -r now
 }
 
