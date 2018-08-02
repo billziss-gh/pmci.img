@@ -19,8 +19,8 @@ expect "assword:"
 send "$rootpass\r"
 
 sh {
-    pkg install -y git
-    pkg install -y go
+    env ASSUME_ALWAYS_YES=1 pkg install -y git
+    env ASSUME_ALWAYS_YES=1 pkg install -y go
 
     shutdown -p now
 }
