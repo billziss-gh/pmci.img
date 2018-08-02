@@ -35,7 +35,7 @@ spawn qemu-system-x86_64 \
     -cdrom [lindex $argv 1] \
     -smp 2 \
     -drive file=[lindex $argv 0],format=raw,if=virtio \
-    -net nic,model=virtio,macaddr=02:00:00:00:00:03 -net user \
+    -net nic,model=virtio,macaddr=02:00:00:00:00:01 -net user \
     -display curses
 
 expect "boot> "
