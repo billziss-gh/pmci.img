@@ -14,7 +14,7 @@ source [info script]/../../shared/lib.tcl
 spawn_qemu_sh [lindex $argv 0] {
     echo 'mtu 1460' >> /etc/ifconfig.vioif0
 
-    pkg_add mozilla-rootcerts
+    pkg_add mozilla-rootcerts >/dev/null
     mozilla-rootcerts install
 
     pkg_add curl
