@@ -25,16 +25,6 @@ usage()
 
 source="$1"
 target="$2"
-tgtsys="$(dirname "$target")"
-tgtcmd="$(basename "$target")"
-tgtimg="$(basename "$source")"
-
-tgtimg="${tgtimg%.iso}"
-tgtimg="${tgtimg%-base.tgz}"
-tgtimg="${tgtimg%.tgz}"
-tgtimg="${tgtimg%-base.tar.gz}"
-tgtimg="${tgtimg%.tar.gz}"
-tgtimg="$tgtimg-$tgtcmd"
 
 [ -n "$target" -a -x "$ImageDir/$target" ] || usage "unknown target" $target
 
@@ -42,31 +32,52 @@ tmpdir=/tmp/imgtool.$$
 trap 'rm -rf "$tmpdir"' EXIT
 mkdir -p "$tmpdir"
 
-case "$tgtcmd/$source" in
-download/*.iso)
-    "$ImageDir/$tgtsys/download" "$source"
-    ;;
-base/*.iso)
-    [ -f "$source" ] || "$ImageDir/$tgtsys/download" "$source"
-    "$ImageDir/$tgtsys/base" "$tmpdir/disk.raw" "$source"
-    gnutar czvf "$tgtimg.tar.gz" -C "$tmpdir" disk.raw
-    ;;
-*/*.iso)
-    [ -f "$source" ] || "$ImageDir/$tgtsys/download" "$source"
-    "$ImageDir/$tgtsys/base" "$tmpdir/disk.raw" "$source"
-    "$ImageDir/$target" "$tmpdir/disk.raw"
-    gnutar czvf "$tgtimg.tar.gz" -C "$tmpdir" disk.raw
-    ;;
-run/*.tgz|run/*.tar.gz)
-    gnutar xzvf "$source" -C "$tmpdir"
-    "$ImageDir/$target" "$tmpdir/disk.raw"
-    ;;
-*/*.tgz|*/*.tar.gz)
-    gnutar xzvf "$source" -C "$tmpdir"
-    "$ImageDir/$target" "$tmpdir/disk.raw"
-    gnutar czvf "$tgtimg.tar.gz" -C "$tmpdir" disk.raw
-    ;;
-*/*)
-    usage "unknown source format"
-    ;;
-esac
+while true; do
+    tgtsys="$(dirname "$target")"
+    tgtcmd="$(basename "$target")"
+    tgtimg="$(basename "$source")"
+
+    tgtimg="${tgtimg%.iso}"
+    tgtimg="${tgtimg%-base.tgz}"
+    tgtimg="${tgtimg%.tgz}"
+    tgtimg="${tgtimg%-base.tar.gz}"
+    tgtimg="${tgtimg%.tar.gz}"
+    tgtimg="$tgtimg-$tgtcmd"
+
+    case "$tgtcmd/$source" in
+    download/*.iso)
+        "$ImageDir/$tgtsys/download" "$source"
+        ;;
+    base/*.iso)
+        [ -f "$source" ] || "$ImageDir/$tgtsys/download" "$source"
+        "$ImageDir/$tgtsys/base" "$tmpdir/disk.raw" "$source"
+        gnutar czvf "$tgtimg.tar.gz" -C "$tmpdir" disk.raw
+        ;;
+    */*.iso)
+        [ -f "$source" ] || "$ImageDir/$tgtsys/download" "$source"
+        "$ImageDir/$tgtsys/base" "$tmpdir/disk.raw" "$source"
+        "$ImageDir/$target" "$tmpdir/disk.raw"
+        gnutar czvf "$tgtimg.tar.gz" -C "$tmpdir" disk.raw
+        ;;
+    run/*.tgz|run/*.tar.gz)
+        gnutar xzvf "$source" -C "$tmpdir"
+        "$ImageDir/$target" "$tmpdir/disk.raw"
+        ;;
+    */*.tgz|*/*.tar.gz)
+        gnutar xzvf "$source" -C "$tmpdir"
+        "$ImageDir/$target" "$tmpdir/disk.raw"
+        gnutar czvf "$tgtimg.tar.gz" -C "$tmpdir" disk.raw
+        ;;
+    */*)
+        if [ -f "$tgtsys/.sources" ]; then
+            source "$tgtsys/.sources"
+            eval "source=\$$source"
+            if [ -n "$source" ]; then
+                continue
+            fi
+        fi
+        usage "unknown source format"
+        ;;
+    esac
+    break
+done
