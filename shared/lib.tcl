@@ -48,6 +48,23 @@ proc spawn_qemu_image {image {arch x86_64}} {
     return $spawn_id
 }
 
+proc spawn_qemu_sh {image args {arch x86_64}} {
+    spawn_qemu_image $image $arch
+
+    global rootpass
+    expect "login:"
+    send "root\r"
+    expect "assword:"
+    send "$rootpass\r"
+
+    sh $args
+    sh {
+        shutdown -p now
+    }
+
+    expect eof
+}
+
 proc sh {args} {
     foreach arg $args {
         foreach line [split $arg "\n"] {

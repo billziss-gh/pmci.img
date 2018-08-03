@@ -11,14 +11,7 @@
 
 source [info script]/../../shared/lib.tcl
 
-spawn_qemu_image [lindex $argv 0]
-
-expect "login:"
-send "root\r"
-expect "assword:"
-send "$rootpass\r"
-
-sh {
+spawn_qemu_sh [lindex $argv 0] {
     echo 'mtu 1460' >> /etc/ifconfig.vioif0
 
     pkg_add mozilla-rootcerts
@@ -36,8 +29,4 @@ sh {
     echo '/usr/pkg/bin/curl -s -S -o /var/run/google-startup-script http://metadata.google.internal/computeMetadata/v1/instance/attributes/startup-script -H Metadata-Flavor:Google' >>/etc/rc.local
     echo 'chmod a+x /var/run/google-startup-script' >>/etc/rc.local
     echo '/var/run/google-startup-script'           >>/etc/rc.local
-
-    shutdown -p now
 }
-
-expect eof
