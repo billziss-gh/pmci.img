@@ -13,6 +13,8 @@ set force_conservative 1
 set rootpass "root"
 
 proc spawn_qemu_installer {installer image {arch x86_64} {size 5G}} {
+    global spawn_id
+
     spawn qemu-img create -f raw $image $size
     expect "Formatting"
     expect eof
@@ -32,6 +34,8 @@ proc spawn_qemu_installer {installer image {arch x86_64} {size 5G}} {
 }
 
 proc spawn_qemu_image {image {arch x86_64}} {
+    global spawn_id
+
     spawn qemu-system-$arch \
         -smp 2 \
         -device virtio-scsi \

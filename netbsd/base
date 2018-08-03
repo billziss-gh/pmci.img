@@ -11,7 +11,7 @@
 
 source [info script]/../../shared/lib.tcl
 
-set spawn_id [spawn_qemu_installer [lindex $argv 1] [lindex $argv 0]]
+spawn_qemu_installer [lindex $argv 1] [lindex $argv 0]
 
 expect "1. Boot normally"
 expect "Option 1 will be chosen"
