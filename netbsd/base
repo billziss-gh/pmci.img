@@ -87,6 +87,19 @@ send "a\r"
 expect "do you want it installed in /etc"
 send "a\r"
 
+expect "d: Change root password"
+send "d\r"
+expect "yes or no?"
+send "a\r"
+expect {
+    "New password:" {
+        send "$rootpass\r"
+        exp_continue
+    }
+    "Retype new password:" {
+        send "$rootpass\r"
+    }
+}
 expect "g: Enable sshd"
 send "g\r"
 send "l\r"
