@@ -11,14 +11,7 @@
 
 source [info script]/../../shared/lib.tcl
 
-spawn_qemu_image [lindex $argv 0]
-
-expect "login:"
-send "root\r"
-expect "assword:"
-send "$rootpass\r"
-
-sh {
+spawn_qemu_sh [lindex $argv 0] {
     echo 'hw.memtest.tests="0"'                >>/boot/loader.conf
     echo 'hw.vtnet.mq_disable=1'               >>/boot/loader.conf
     echo 'kern.timecounter.hardware=ACPI-safe' >>/boot/loader.conf
@@ -34,8 +27,4 @@ sh {
     env ASSUME_ALWAYS_YES=1 pkg bootstrap -y
     env ASSUME_ALWAYS_YES=1 pkg install -y curl
     env ASSUME_ALWAYS_YES=1 pkg install -y google-cloud-sdk
-
-    shutdown -p now
 }
-
-expect eof

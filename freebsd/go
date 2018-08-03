@@ -11,18 +11,7 @@
 
 source [info script]/../../shared/lib.tcl
 
-spawn_qemu_image [lindex $argv 0]
-
-expect "login:"
-send "root\r"
-expect "assword:"
-send "$rootpass\r"
-
-sh {
+spawn_qemu_sh [lindex $argv 0] {
     env ASSUME_ALWAYS_YES=1 pkg install -y git
     env ASSUME_ALWAYS_YES=1 pkg install -y go
-
-    shutdown -p now
 }
-
-expect eof
