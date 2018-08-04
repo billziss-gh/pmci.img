@@ -9,7 +9,7 @@
 # It is licensed under the BSD license. The full license text can be found
 # in the License.txt file at the root of this project.
 
-source [info script]/../../shared/lib.tcl
+source [file dirname [info script]]/../shared/lib.tcl
 
 spawn_qemu_installer [lindex $argv 1] [lindex $argv 0]
 

@@ -32,6 +32,7 @@ tmpdir=/tmp/imgtool.$$
 trap 'rm -rf "$tmpdir"' EXIT
 mkdir -p "$tmpdir"
 
+export PATH="$ImageDir:$PATH"
 while true; do
     tgtsys="$(dirname "$target")"
     tgtcmd="$(basename "$target")"

@@ -1,6 +1,6 @@
-#!/usr/bin/env imgsh
+#!/usr/bin/env imgsh gce go
 
-# freebsd/go
+# freebsd/gce-go
 #
 # Copyright 2018 Bill Zissimopoulos
 
@@ -8,6 +8,3 @@
 #
 # It is licensed under the BSD license. The full license text can be found
 # in the License.txt file at the root of this project.
-
-env ASSUME_ALWAYS_YES=1 pkg install -y git
-env ASSUME_ALWAYS_YES=1 pkg install -y go

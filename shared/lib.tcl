@@ -69,7 +69,7 @@ proc sh {args} {
     foreach arg $args {
         foreach line [split $arg "\n"] {
             set line [string trim $line]
-            if {$line != ""} {
+            if {$line != "" && ![string match "#*" $line]} {
                 expect "# "
                 send "$line\r"
             }

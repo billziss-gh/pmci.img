@@ -1,4 +1,4 @@
-#!/usr/bin/env expect -f
+#!/usr/bin/env imgsh
 
 # freebsd/gce
 #
@@ -9,22 +9,18 @@
 # It is licensed under the BSD license. The full license text can be found
 # in the License.txt file at the root of this project.
 
-source [info script]/../../shared/lib.tcl
+echo 'hw.memtest.tests="0"'                >>/boot/loader.conf
+echo 'hw.vtnet.mq_disable=1'               >>/boot/loader.conf
+echo 'kern.timecounter.hardware=ACPI-safe' >>/boot/loader.conf
+echo 'aesni_load="YES"'                    >>/boot/loader.conf
+echo 'nvme_load="YES"'                     >>/boot/loader.conf
 
-spawn_qemu_sh [lindex $argv 0] {
-    echo 'hw.memtest.tests="0"'                >>/boot/loader.conf
-    echo 'hw.vtnet.mq_disable=1'               >>/boot/loader.conf
-    echo 'kern.timecounter.hardware=ACPI-safe' >>/boot/loader.conf
-    echo 'aesni_load="YES"'                    >>/boot/loader.conf
-    echo 'nvme_load="YES"'                     >>/boot/loader.conf
+sed -i "" 's/ifconfig_vtnet0="DHCP"/ifconfig_vtnet0="SYNCDHCP mtu 1460"/' /etc/rc.conf
 
-    sed -i "" 's/ifconfig_vtnet0="DHCP"/ifconfig_vtnet0="SYNCDHCP mtu 1460"/' /etc/rc.conf
+echo '/usr/local/bin/curl -s -S -o /var/run/google-startup-script http://metadata.google.internal/computeMetadata/v1/instance/attributes/startup-script -H Metadata-Flavor:Google' >/etc/rc.local
+echo 'chmod a+x /var/run/google-startup-script' >>/etc/rc.local
+echo '/var/run/google-startup-script'           >>/etc/rc.local
 
-    echo '/usr/local/bin/curl -s -S -o /var/run/google-startup-script http://metadata.google.internal/computeMetadata/v1/instance/attributes/startup-script -H Metadata-Flavor:Google' >/etc/rc.local
-    echo 'chmod a+x /var/run/google-startup-script' >>/etc/rc.local
-    echo '/var/run/google-startup-script'           >>/etc/rc.local
-
-    env ASSUME_ALWAYS_YES=1 pkg bootstrap -y
-    env ASSUME_ALWAYS_YES=1 pkg install -y curl
-    env ASSUME_ALWAYS_YES=1 pkg install -y google-cloud-sdk
-}
+env ASSUME_ALWAYS_YES=1 pkg bootstrap -y
+env ASSUME_ALWAYS_YES=1 pkg install -y curl
+env ASSUME_ALWAYS_YES=1 pkg install -y google-cloud-sdk

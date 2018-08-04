@@ -1,0 +1,33 @@
+#!/usr/bin/env expect -f
+
+# imgsh
+#
+# Copyright 2018 Bill Zissimopoulos
+
+# This file is part of "Poor Man's CI".
+#
+# It is licensed under the BSD license. The full license text can be found
+# in the License.txt file at the root of this project.
+
+source [file dirname [info script]]/shared/lib.tcl
+
+proc readfile {filename} {
+    set f [open $filename]
+    set d [read $f]
+    close $f
+    return $d
+}
+
+set files [lrange $argv 0 end-2]
+set fmain [lindex $argv end-1]
+set image [lindex $argv end]
+
+set dmain [file dirname "$fmain"]
+
+set args ""
+foreach file $files {
+    set args "$args\n[readfile [file join $dmain $file]]"
+}
+set args "$args\n[readfile $fmain]"
+
+spawn_qemu_sh $image $args
