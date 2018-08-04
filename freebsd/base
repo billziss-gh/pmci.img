@@ -136,6 +136,8 @@ sh {
     echo 'beastie_disable="YES"' >>/boot/loader.conf
     echo 'console="comconsole"'  >>/boot/loader.conf
 
+    chsh -s /bin/sh
+
     shutdown -p now
 }
 

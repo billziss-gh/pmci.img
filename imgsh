@@ -24,10 +24,10 @@ set image [lindex $argv end]
 
 set dmain [file dirname "$fmain"]
 
-set args ""
+set script ""
 foreach file $files {
-    set args "$args\n[readfile [file join $dmain $file]]"
+    set script "$script\n[readfile [file join $dmain $file]]"
 }
-set args "$args\n[readfile $fmain]"
+set script "$script\n[readfile $fmain]"
 
-spawn_qemu_sh $image $args
+spawn_qemu_sh $image $script

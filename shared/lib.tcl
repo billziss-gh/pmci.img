@@ -48,7 +48,7 @@ proc spawn_qemu_image {image {arch x86_64}} {
     return $spawn_id
 }
 
-proc spawn_qemu_sh {image args {arch x86_64}} {
+proc spawn_qemu_sh {image script {arch x86_64}} {
     spawn_qemu_image $image $arch
 
     global rootpass
@@ -57,22 +57,28 @@ proc spawn_qemu_sh {image args {arch x86_64}} {
     expect "assword:"
     send "$rootpass\r"
 
-    sh $args
     sh {
+        set -e
+        PS1="IMGTOOL# "
+    }
+    sh_prompt "IMGTOOL# " $script
+    sh_prompt "IMGTOOL# " {
         shutdown -p now
     }
 
     expect eof
 }
 
-proc sh {args} {
-    foreach arg $args {
-        foreach line [split $arg "\n"] {
-            set line [string trim $line]
-            if {$line != "" && ![string match "#*" $line]} {
-                expect "# "
-                send "$line\r"
-            }
+proc sh {script} {
+    sh_prompt "# " $script
+}
+
+proc sh_prompt {prompt script} {
+    foreach line [split $script "\n"] {
+        set line [string trim $line]
+        if {$line != "" && ![string match "#*" $line]} {
+            expect $prompt
+            send "$line\r"
         }
     }
 }
